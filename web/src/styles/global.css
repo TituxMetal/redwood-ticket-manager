@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-zinc-800 text-zinc-50;
+  }
+
+  @media (prefers-color-scheme: dark) or (prefers-color-scheme: light) {
+    html {
+      color-scheme: dark;
+    }
+  }
+}
+
+/* @layer components {} */
+
+/* @layer utilities {} */
