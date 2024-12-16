@@ -17,7 +17,9 @@ model User {
   hash                String    @default("")
   salt                String    @default("")
 
-  identity Identity[]
+  identity        Identity[]
+  createdTickets  Ticket[]   @relation("UserCreatedTickets")
+  assignedTickets Ticket[]   @relation("TicketAssignment")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -39,4 +41,22 @@ model Identity {
 
   @@unique([provider, uid])
   @@index(userId)
+}
+
+model Ticket {
+  id          String @id @default(uuid())
+  title       String
+  description String
+  status      String @default("OPEN")
+  priority    String @default("LOW")
+
+  // Creator of the ticket
+  userId           String
+  user             User    @relation("UserCreatedTickets", fields: [userId], references: [id], onDelete: Cascade)
+  // Assignee of the ticket
+  assignedToUserId String?
+  assignedToUser   User?   @relation("TicketAssignment", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
