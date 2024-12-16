@@ -1,5 +1,30 @@
 # Specs
 
+## Database Schema
+
+### Relationships between User and Ticket models:
+
+1. UserCreatedTickets Relation
+
+The user field in the Ticket model points to the createdTickets array in the User model.
+This represents the tickets created by a user.
+
+2. TicketAssignment Relation
+
+The assignedToUser field in the Ticket model points to the assignedTickets array in the User model.
+This represents the tickets assigned to a user.
+
+To ensure clean data management and avoid orphaned records:
+
+- Use onDelete: Cascade on the creator relationship (user) to delete tickets when the creator is deleted.
+- Use onDelete: SetNull on the assignee relationship (assignedToUser) to unassign tickets but preserve them.
+
+### Bi-Directional Relationships
+
+Prisma requires both ends of a relationship to be clearly defined when there are multiple relations between two models.
+
+## Pages
+
 1. Home Page for Unauthenticated Users (/)
   - Purpose: Landing page for users who are not logged in.
   - Features:
