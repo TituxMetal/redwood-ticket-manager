@@ -1,19 +1,20 @@
-// import { Link, routes } from '@redwoodjs/router'
+import { useParams } from '@redwoodjs/router'
 import { Metadata } from '@redwoodjs/web'
 
+import SingleTicketCell from '~/components/SingleTicketCell'
+
 const SingleTicketPage = () => {
+  const { id } = useParams()
+
   return (
     <>
-      <Metadata title='SingleTicket' description='SingleTicket page' />
+      <Metadata title='Ticket Details' description='Ticket details page' />
 
-      <h1>SingleTicketPage</h1>
-      <p>
-        Find me in <code>./web/src/pages/SingleTicketPage/SingleTicketPage.tsx</code>
-      </p>
-      {/*
-          My default route is named `singleTicket`, link to me with:
-          `<Link to={routes.singleTicket()}>SingleTicket</Link>`
-      */}
+      <div className='flex min-h-screen flex-col items-center px-4 py-16'>
+        <div className='w-full max-w-4xl'>
+          <SingleTicketCell id={id} />
+        </div>
+      </div>
     </>
   )
 }
