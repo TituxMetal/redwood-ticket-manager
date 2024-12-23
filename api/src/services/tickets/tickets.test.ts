@@ -50,12 +50,26 @@ describe('tickets', () => {
   })
 
   describe('ticket query', () => {
-    scenario('returns a single ticket', async (scenario: StandardScenario) => {
+    scenario('returns a single ticket with relations', async (scenario: StandardScenario) => {
       const expectedTicket = scenario.ticket.one
 
       const result = await ticket({ id: expectedTicket.id })
 
-      expect(result).toEqual(expectedTicket)
+      expect(result).toEqual({
+        id: expectedTicket.id,
+        title: expectedTicket.title,
+        description: expectedTicket.description,
+        status: expectedTicket.status,
+        priority: expectedTicket.priority,
+        userId: expectedTicket.userId,
+        assignedToUserId: expectedTicket.assignedToUserId,
+        user: {
+          id: expect.any(String),
+          email: 'user1@example.com',
+          name: null
+        },
+        assignedToUser: null
+      })
     })
 
     scenario('returns null for non-existent ticket', async () => {

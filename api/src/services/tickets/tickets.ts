@@ -24,7 +24,30 @@ export const tickets = ({ status, priority }: TicketsArgs = {}) => {
 
 export const ticket = ({ id }) => {
   return db.ticket.findUnique({
-    where: { id }
+    where: { id },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      status: true,
+      priority: true,
+      userId: true,
+      assignedToUserId: true,
+      user: {
+        select: {
+          id: true,
+          email: true,
+          name: true
+        }
+      },
+      assignedToUser: {
+        select: {
+          id: true,
+          email: true,
+          name: true
+        }
+      }
+    }
   })
 }
 
