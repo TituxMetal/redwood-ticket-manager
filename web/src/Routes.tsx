@@ -14,13 +14,13 @@ const Routes = () => {
         <Route path='/' page={HomePage} name='home' />
         <Set wrap={TicketLayout}>
           <PrivateSet unauthenticated='login'>
-            <Route path='/tickets/:id' page={SingleTicketPage} name='singleTicket' />
-            <Route path='/tickets' page={TicketsPage} name='tickets' />
             <Route path='/tickets/new' page={NewTicketPage} name='newTicket' />
+            <Route path='/tickets/{id}' page={SingleTicketPage} name='singleTicket' />
+            <Route path='/tickets' page={TicketsPage} name='tickets' />
           </PrivateSet>
         </Set>
+        <Route notfound page={NotFoundPage} />
       </Set>
-      <Route notfound page={NotFoundPage} />
     </Router>
   )
 }
