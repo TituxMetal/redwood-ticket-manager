@@ -23,6 +23,9 @@ const CommonLayout = ({ children }: CommonLayoutProps) => {
                   <Link to={routes.home()}>{currentUser.name}</Link>
                 </li>
                 <li>
+                  <Link to={routes.tickets()}>Tickets</Link>
+                </li>
+                <li>
                   <button type='button' onClick={logOut}>
                     Logout
                   </button>

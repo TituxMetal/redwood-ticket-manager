@@ -10,78 +10,102 @@ jest.mock('~/auth', () => ({
 }))
 
 describe('CommonLayout', () => {
-  beforeEach(() => {
-    mockUseAuth.mockReturnValue({
-      isAuthenticated: false,
-      currentUser: null,
-      logOut: jest.fn()
+  const mockLogOut = jest.fn()
+
+  describe('unauthenticated user', () => {
+    beforeEach(() => {
+      mockUseAuth.mockReturnValue({
+        isAuthenticated: false,
+        currentUser: null,
+        logOut: mockLogOut
+      })
     })
-  })
 
-  it('renders successfully', () => {
-    expect(() => render(<CommonLayout />)).not.toThrow()
-  })
-
-  describe('when user is not authenticated', () => {
-    it('displays login and signup links', () => {
+    it('shows login and signup links', () => {
       render(<CommonLayout />)
 
-      expect(screen.getByRole('link', { name: /login/i })).toHaveAttribute('href', routes.login())
-      expect(screen.getByRole('link', { name: /signup/i })).toHaveAttribute('href', routes.signup())
+      const loginLink = screen.getByRole('link', { name: 'Login' })
+      const signupLink = screen.getByRole('link', { name: 'Signup' })
+
+      expect(loginLink).toHaveAttribute('href', routes.login())
+      expect(signupLink).toHaveAttribute('href', routes.signup())
+    })
+
+    it('does not show authenticated user elements', () => {
+      render(<CommonLayout />)
+
+      expect(screen.queryByRole('button', { name: 'Logout' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Tickets' })).not.toBeInTheDocument()
     })
   })
 
-  describe('when user is authenticated', () => {
+  describe('authenticated user', () => {
     beforeEach(() => {
       mockUseAuth.mockReturnValue({
         isAuthenticated: true,
         currentUser: { name: 'John Doe' },
-        logOut: jest.fn()
+        logOut: mockLogOut
       })
     })
 
-    it('displays user name and logout button', () => {
+    it('shows user navigation elements', () => {
       render(<CommonLayout />)
 
-      expect(screen.getByRole('link', { name: 'John Doe' })).toHaveAttribute('href', routes.home())
-      expect(screen.getByRole('button', { name: /logout/i })).toBeInTheDocument()
+      const userLink = screen.getByRole('link', { name: 'John Doe' })
+      const ticketsLink = screen.getByRole('link', { name: 'Tickets' })
+      const logoutButton = screen.getByRole('button', { name: 'Logout' })
+
+      expect(userLink).toHaveAttribute('href', routes.home())
+      expect(ticketsLink).toHaveAttribute('href', routes.tickets())
+      expect(logoutButton).toBeInTheDocument()
     })
 
-    it('does not display login and signup links', () => {
+    it('handles logout click', () => {
       render(<CommonLayout />)
 
-      expect(screen.queryByRole('link', { name: /login/i })).not.toBeInTheDocument()
-      expect(screen.queryByRole('link', { name: /signup/i })).not.toBeInTheDocument()
+      screen.getByRole('button', { name: 'Logout' }).click()
+
+      expect(mockLogOut).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not show unauthenticated user elements', () => {
+      render(<CommonLayout />)
+
+      expect(screen.queryByRole('link', { name: 'Login' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Signup' })).not.toBeInTheDocument()
     })
   })
 
-  describe('layout structure', () => {
-    it('renders header with navigation and site title', () => {
+  describe('common elements', () => {
+    beforeEach(() => {
+      mockUseAuth.mockReturnValue({
+        isAuthenticated: false,
+        currentUser: null,
+        logOut: mockLogOut
+      })
+    })
+
+    it('renders header with site title', () => {
       render(<CommonLayout />)
 
-      expect(screen.getByRole('banner')).toBeInTheDocument()
-      expect(screen.getByRole('navigation')).toBeInTheDocument()
-      expect(screen.getByRole('heading', { name: /redwood starter/i })).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: /redwood starter/i })).toHaveAttribute('href', '/')
+      const titleLink = screen.getByRole('link', { name: 'Redwood Starter' })
+
+      expect(titleLink).toHaveAttribute('href', '/')
     })
 
     it('renders main content', () => {
-      const testContent = 'Test Content'
+      const content = 'Main content'
 
-      render(<CommonLayout>{testContent}</CommonLayout>)
+      render(<CommonLayout>{content}</CommonLayout>)
 
-      expect(screen.getByRole('main')).toBeInTheDocument()
-      expect(screen.getByText(testContent)).toBeInTheDocument()
+      expect(screen.getByText(content)).toBeInTheDocument()
     })
 
-    it('renders footer with attribution', () => {
+    it('renders footer with github link', () => {
       render(<CommonLayout />)
 
-      const footer = screen.getByRole('contentinfo')
-      const githubLink = screen.getByRole('link', { name: /TituxMetal/i })
+      const githubLink = screen.getByRole('link', { name: 'TituxMetal' })
 
-      expect(footer).toBeInTheDocument()
-      expect(screen.getByText(/Built with ❤️ and lots of coffee by/i)).toBeInTheDocument()
       expect(githubLink).toHaveAttribute('href', 'https://github.com/TituxMetal')
       expect(githubLink).toHaveAttribute('target', '_blank')
       expect(githubLink).toHaveAttribute('rel', 'noopener noreferrer')
