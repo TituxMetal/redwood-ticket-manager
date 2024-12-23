@@ -1,9 +1,25 @@
+import { TicketPriorityType, TicketStatusType } from 'src/lib/constants/enums'
 import { db } from 'src/lib/db'
 import { createTicketSchema } from 'src/lib/shared/validationSchema'
 import { validateWithZod } from 'src/lib/zodValidation'
 
-export const tickets = () => {
-  return db.ticket.findMany()
+interface TicketsArgs {
+  status?: TicketStatusType
+  priority?: TicketPriorityType
+}
+
+export const tickets = ({ status, priority }: TicketsArgs = {}) => {
+  const where = {
+    ...(status && { status }),
+    ...(priority && { priority })
+  }
+
+  return db.ticket.findMany({
+    where,
+    orderBy: {
+      createdAt: 'desc'
+    }
+  })
 }
 
 export const ticket = ({ id }) => {
