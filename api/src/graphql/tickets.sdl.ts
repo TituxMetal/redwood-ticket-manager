@@ -3,7 +3,7 @@ export const schema = gql`
     id: String!
     title: String!
     description: String!
-    status: TicketStatus
+    status: TicketStatus!
     priority: TicketPriorityType!
     userId: String!
     user: User!
@@ -26,7 +26,7 @@ export const schema = gql`
   }
 
   type Query {
-    tickets: [Ticket!]! @requireAuth
+    tickets(status: TicketStatus, priority: TicketPriorityType): [Ticket!]! @requireAuth
     ticket(id: String!): Ticket @requireAuth
   }
 
@@ -43,7 +43,6 @@ export const schema = gql`
     description: String
     status: String
     priority: String
-    userId: String
     assignedToUserId: String
   }
 
