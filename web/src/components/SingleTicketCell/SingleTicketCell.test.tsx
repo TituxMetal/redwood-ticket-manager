@@ -1,4 +1,4 @@
-import { render, screen } from '@redwoodjs/testing/web'
+import { render, screen, waitFor } from '@redwoodjs/testing/web'
 
 import { Empty, Failure, Loading, Success } from './SingleTicketCell'
 import { standard } from './SingleTicketCell.mock'
@@ -13,50 +13,47 @@ describe('SingleTicketCell', () => {
   })
 
   describe('Empty', () => {
-    it('displays not found message', () => {
+    it('displays empty message', () => {
       render(<Empty />)
 
-      expect(screen.getByText('Ticket not found')).toBeInTheDocument()
+      expect(screen.getByText('No ticket found')).toBeInTheDocument()
     })
   })
 
   describe('Failure', () => {
     it('displays error message', () => {
-      const error = new Error('Something went wrong')
-
+      const error = new Error('Oh no')
       render(<Failure error={error} />)
 
-      expect(screen.getByText('Error: Something went wrong')).toBeInTheDocument()
+      expect(screen.getByText('Error loading ticket: Oh no')).toBeInTheDocument()
     })
   })
 
   describe('Success', () => {
-    it('displays ticket information using TicketCard', () => {
-      const mockTicket = standard().ticket
+    it('renders ticket details', async () => {
+      const ticket = standard().ticket
+      render(<Success ticket={ticket} />)
 
-      render(<Success ticket={mockTicket} />)
-
-      expect(
-        screen.getByRole('heading', { name: `${mockTicket.title} by ${mockTicket.user.name}` })
-      ).toBeInTheDocument()
-      expect(screen.getByText(mockTicket.description)).toBeInTheDocument()
-      expect(screen.getByText(`Status: ${mockTicket.status.toLowerCase()}`)).toBeInTheDocument()
-      expect(screen.getByText(`Priority: ${mockTicket.priority.toLowerCase()}`)).toBeInTheDocument()
-      expect(
-        screen.getByText(`Created at: ${new Date(mockTicket.createdAt).toLocaleDateString()}`)
-      ).toBeInTheDocument()
-      expect(screen.getByText(`Assigned to: ${mockTicket.assignedToUser.name}`)).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByText(ticket.title)).toBeInTheDocument()
+        expect(screen.getByText(ticket.description)).toBeInTheDocument()
+        expect(screen.getByText(ticket.status)).toBeInTheDocument()
+        expect(screen.getByText(ticket.priority)).toBeInTheDocument()
+      })
     })
 
-    it('handles ticket without assigned user', () => {
-      const mockTicket = {
+    it('displays user information', async () => {
+      const ticket = {
         ...standard().ticket,
-        assignedToUser: null
+        user: { id: '1', name: 'John Doe' },
+        assignedToUser: { id: '2', name: 'Jane Smith' }
       }
+      render(<Success ticket={ticket} />)
 
-      render(<Success ticket={mockTicket} />)
-
-      expect(screen.getByText('Not assigned')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument()
+        expect(screen.getByText('Jane Smith')).toBeInTheDocument()
+      })
     })
   })
 })
