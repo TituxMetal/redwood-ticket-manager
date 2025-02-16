@@ -8,6 +8,10 @@ interface TicketsArgs {
   priority?: TicketPriorityType
 }
 
+interface TicketArgs {
+  id: string
+}
+
 export const tickets = ({ status, priority }: TicketsArgs = {}) => {
   const where = {
     ...(status && { status }),
@@ -22,33 +26,50 @@ export const tickets = ({ status, priority }: TicketsArgs = {}) => {
   })
 }
 
-export const ticket = ({ id }) => {
-  return db.ticket.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      status: true,
-      priority: true,
-      userId: true,
-      assignedToUserId: true,
-      user: {
-        select: {
-          id: true,
-          email: true,
-          name: true
-        }
-      },
-      assignedToUser: {
-        select: {
-          id: true,
-          email: true,
-          name: true
+export const ticket = async ({ id }: TicketArgs) => {
+  if (!id) {
+    throw new Error('Ticket ID is required')
+  }
+
+  try {
+    const result = await db.ticket.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        priority: true,
+        userId: true,
+        assignedToUserId: true,
+        createdAt: true,
+        updatedAt: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true
+          }
+        },
+        assignedToUser: {
+          select: {
+            id: true,
+            email: true,
+            name: true
+          }
         }
       }
+    })
+
+    if (!result) {
+      throw new Error(`Ticket not found: ${id}`)
     }
-  })
+
+    return result
+  } catch (error) {
+    console.error('Error fetching ticket:', error)
+    throw error
+  }
 }
 
 export const createTicket = ({ input }) => {
