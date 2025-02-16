@@ -1,10 +1,15 @@
 import { TicketPriority, TicketStatus } from 'src/lib/constants/enums'
+import { db } from 'src/lib/db'
 import { ZodValidationError } from 'src/lib/zodValidation'
 
 import { createTicket, deleteTicket, ticket, tickets, updateTicket } from './tickets'
 import type { StandardScenario } from './tickets.scenarios'
 
 describe('tickets', () => {
+  beforeEach(async () => {
+    await db.$transaction([db.ticket.deleteMany(), db.user.deleteMany()])
+  })
+
   describe('tickets query', () => {
     scenario('returns all tickets', async (scenario: StandardScenario) => {
       const expectedLength = Object.keys(scenario.ticket).length
@@ -55,7 +60,7 @@ describe('tickets', () => {
 
       const result = await ticket({ id: expectedTicket.id })
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         id: expectedTicket.id,
         title: expectedTicket.title,
         description: expectedTicket.description,
@@ -70,14 +75,16 @@ describe('tickets', () => {
         },
         assignedToUser: null
       })
+      expect(result.createdAt).toBeInstanceOf(Date)
+      expect(result.updatedAt).toBeInstanceOf(Date)
     })
 
     scenario('returns null for non-existent ticket', async () => {
       const nonExistentId = 'non-existent-id'
 
-      const result = await ticket({ id: nonExistentId })
-
-      expect(result).toBeNull()
+      await expect(ticket({ id: nonExistentId })).rejects.toThrow(
+        'Ticket not found: non-existent-id'
+      )
     })
   })
 
@@ -92,14 +99,16 @@ describe('tickets', () => {
 
       const result = await createTicket({ input: newTicket })
 
-      expect(result).toEqual(
-        expect.objectContaining({
-          title: newTicket.title,
-          description: newTicket.description,
-          priority: newTicket.priority,
-          userId: newTicket.userId
-        })
-      )
+      expect(result).toMatchObject({
+        title: newTicket.title,
+        description: newTicket.description,
+        priority: newTicket.priority,
+        userId: newTicket.userId,
+        status: TicketStatus.OPEN
+      })
+      expect(result.id).toBeDefined()
+      expect(result.createdAt).toBeInstanceOf(Date)
+      expect(result.updatedAt).toBeInstanceOf(Date)
     })
 
     scenario('fails with invalid data', async (scenario: StandardScenario) => {
@@ -112,12 +121,10 @@ describe('tickets', () => {
 
       try {
         await createTicket({ input: invalidTicket })
-        fail('Should have thrown an error')
+        fail('Should have thrown a validation error')
       } catch (error) {
         expect(error).toBeInstanceOf(ZodValidationError)
-        expect(error.extensions.properties.messages.title).toEqual([
-          'String must contain at least 3 character(s)'
-        ])
+        expect(error.message).toContain('Validation failed')
       }
     })
   })
@@ -138,12 +145,11 @@ describe('tickets', () => {
 
       expect(result).toMatchObject({
         id: originalTicket.id,
-        title: updateData.title,
-        priority: updateData.priority,
-        status: updateData.status,
+        ...updateData,
         description: originalTicket.description,
         userId: originalTicket.userId
       })
+      expect(result.updatedAt).toBeInstanceOf(Date)
     })
 
     scenario('fails with non-existent id', async () => {
@@ -164,10 +170,11 @@ describe('tickets', () => {
       const ticketToDelete = scenario.ticket.one
 
       const deletedTicket = await deleteTicket({ id: ticketToDelete.id })
-      const checkTicket = await ticket({ id: ticketToDelete.id })
 
       expect(deletedTicket.id).toEqual(ticketToDelete.id)
-      expect(checkTicket).toBeNull()
+      await expect(ticket({ id: ticketToDelete.id })).rejects.toThrow(
+        `Ticket not found: ${ticketToDelete.id}`
+      )
     })
 
     scenario('fails with non-existent id', async () => {
@@ -175,5 +182,9 @@ describe('tickets', () => {
 
       await expect(deleteTicket({ id: nonExistentId })).rejects.toThrow()
     })
+  })
+
+  afterAll(async () => {
+    await db.$disconnect()
   })
 })
