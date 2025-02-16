@@ -30,13 +30,11 @@ describe('users', () => {
     })
 
     scenario('fails to create a user with invalid email', async () => {
-      // Arrange
       const newUser = {
         email: 'invalid-email',
         name: 'Test User'
       }
 
-      // Act & Assert
       try {
         await createUser(newUser)
         fail('Should have thrown an error')
@@ -47,13 +45,11 @@ describe('users', () => {
     })
 
     scenario('fails to create a user with short name', async () => {
-      // Arrange
       const newUser = {
         email: 'test@example.com',
         name: 'Te'
       }
 
-      // Act & Assert
       try {
         await createUser(newUser)
         fail('Should have thrown an error')
